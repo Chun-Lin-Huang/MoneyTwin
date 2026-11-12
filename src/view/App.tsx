@@ -39,6 +39,14 @@ const navigation: { id: Page; icon: string; label: string }[] = [
   { id: 'coach', icon: '✧', label: '決策教練' },
   { id: 'reports', icon: '▤', label: '我的模擬報告' },
 ];
+const pageKickers: Record<Page, string> = {
+  overview: 'FINANCIAL JOURNAL · 2026',
+  profile: 'YOUR FINANCIAL BASELINE',
+  scenarios: 'PARALLEL FUTURES',
+  stress: 'FINANCIAL RESILIENCE',
+  coach: 'DECISION NOTES',
+  reports: 'SAVED SIMULATIONS',
+};
 const storageKey = 'moneytwin-v1';
 function validProfile(p: Profile) {
   return (
@@ -169,6 +177,21 @@ function App() {
   const base = results[0];
   const affordableRent = maxAffordableRent(profile, active.scenario);
   const summary = explain(active, base, profile);
+  const projectionValues = results.flatMap((result) => [
+    result.months[0].opening,
+    ...result.months.map((month) => month.balance),
+  ]);
+  const projectionMin = Math.min(...projectionValues);
+  const projectionMax = Math.max(...projectionValues);
+  const projectionY = (value: number) =>
+    200 -
+    ((value - projectionMin) / (projectionMax - projectionMin || 1)) * 160;
+  const projectionPath = (result: (typeof results)[number]) =>
+    [result.months[0].opening, ...result.months.map((month) => month.balance)]
+      .map((value, index) =>
+        `${index ? 'L' : 'M'}${48 + (368 * index) / 12},${projectionY(value)}`,
+      )
+      .join(' ');
   function notify(text: string) {
     setToast(text);
     setTimeout(() => setToast(''), 4500);
@@ -505,14 +528,16 @@ function App() {
         <main>
           <div className="page-heading">
             <div>
-              <div className="eyebrow">YOUR NEXT CHAPTER, SIMULATED.</div>
+              <div className="eyebrow">
+                {pageKickers[page]}
+              </div>
               <h1>
                 {page === 'overview' ? '讓每一個選擇，都更有底氣。' : pageTitle}
                 <span className="heading-dot">✦</span>
               </h1>
               <p>
                 {page === 'overview'
-                  ? '和你的財務分身一起，看見不同選擇下的未來。'
+                  ? '先看見選擇的代價，再決定下一步。'
                   : page === 'profile'
                     ? '建立共同起點，讓每一條平行未來都有一致的依據。'
                     : page === 'scenarios'
@@ -544,38 +569,52 @@ function App() {
           {page === 'overview' && (
             <>
               <div className="overview-banner">
-                <div className="banner-orbit">
-                  <span>◎</span>
-                  <i>✧</i>
-                </div>
-                <div>
-                  <span className="banner-kicker">
-                    MEET YOUR FINANCIAL TWIN
-                  </span>
-                  <h2>現在的你，連結未來的無限可能。</h2>
+                <div className="banner-copy">
+                  <span className="banner-kicker">A PORTRAIT OF YOUR NEXT YEAR</span>
+                  <h2>讓每一條未來，都有跡可循。</h2>
                   <p>
-                    已根據財務資料建立{' '}
-                    <strong>{scenarios.length} 個平行未來</strong>
-                    。調整一個選擇，看看未來會有什麼不同。
+                    從現在的收支出發，並排看看{' '}
+                    <strong>{scenarios.length} 種生活選擇</strong>，每個數字都能回到它的假設。
                   </p>
                   <button onClick={() => navigate('profile')}>
-                    查看我的財務分身 <span>↗</span>
+                    調整共同起點 <span>↗</span>
                   </button>
                 </div>
                 <div className="banner-art" aria-hidden="true">
-                  <div className="orbit one" />
-                  <div className="orbit two" />
-                  <div className="orbit three" />
-                  <div className="orb">
-                    <span>m</span>
+                  <div className="projection-note"><span>NOW</span><i />12 MONTHS</div>
+                  <svg viewBox="0 0 440 230" role="presentation">
+                    <path className="plot-grid" d="M24 34H420M24 86H420M24 138H420M24 190H420M48 20V202M140 20V202M232 20V202M324 20V202M416 20V202" />
+                    {results.map((result) => (
+                      <path
+                        key={result.scenario.id}
+                        className="plot-line"
+                        style={{ stroke: result.scenario.color }}
+                        d={projectionPath(result)}
+                      />
+                    ))}
+                    <circle cx="48" cy={projectionY(profile.savings)} r="6" className="plot-origin" />
+                    {results.map((result) => (
+                      <circle
+                        key={result.scenario.id}
+                        cx="416"
+                        cy={projectionY(result.end)}
+                        r="5"
+                        className="plot-dot"
+                        style={{ fill: result.scenario.color }}
+                      />
+                    ))}
+                  </svg>
+                  <div className="projection-legend">
+                    {results.slice(0, 3).map((result) => (
+                      <span key={result.scenario.id} title={result.scenario.name}>
+                        <i style={{ background: result.scenario.color }} />
+                        {result.scenario.name}
+                      </span>
+                    ))}
+                    {results.length > 3 && (
+                      <span className="projection-more">+{results.length - 3}</span>
+                    )}
                   </div>
-                  <span className="float-label label-one">
-                    ✧ 未來，由你定義
-                  </span>
-                  <span className="float-label label-two">
-                    <i /> TWIN CONNECTED
-                  </span>
-                  <span className="art-spark">✦</span>
                 </div>
               </div>
               <div className="metric-grid">
