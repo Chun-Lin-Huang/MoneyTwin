@@ -49,15 +49,16 @@ npm run server
 
 ## 選用的真實 AI 模型
 
-這個版本提供 Ollama `/api/chat` 介面，支援本機模型，沒有把金鑰放在前端。介面契約依據 [Ollama 官方文件](https://docs.ollama.com/api/chat)。
+MoneyTwin 的模型呼叫由 Node 後端代理，支援 Ollama `/api/chat` 與 OpenAI 相容的 `/v1/chat/completions` API。API 金鑰只放在後端 `.env`，不會打包進前端。
 
-1. 安裝並啟動 Ollama，下載希望使用的模型。模型名稱須以實際安裝的模型為準，可用 `ollama list` 查看。
-2. 複製 `.env.example` 為 `.env`。
-3. 將 `LLM_MODEL` 改為已安裝的名稱，`LLM_URL` 預設是 `http://127.0.0.1:11434/api/chat`。
-4. 重啟 `npm run server`。`/api/health` 的 `ready` 表示設定齊全，不保證模型在線。
-5. 在建立情境視窗點選「AI 理解情境」，或在決策教練點選「生成 AI 決策說明」。
+1. 複製 `.env.example` 為 `.env`（同資料夾已存在 `.env` 時直接編輯）。
+2. 設定 `LLM_PROVIDER=openai-compatible`、`LLM_URL=https://tkuimaisvc.ethci.app/v1/chat/completions`、`LLM_MODEL=qwen3.8-27b`，並將 `LLM_API_KEY` 設為服務提供的 Bearer key。
+3. 儲存 `.env`，在 MoneyTwin 資料夾執行 `npm run server`；開發模式另外執行 `npm run dev`。
+4. 開啟 Vite 顯示的網址，在決策教練頁先建立或選擇方案、產生模擬摘要，再點「生成 AI 決策說明」。情境建立視窗的「AI 理解情境」也會使用同一個模型服務。
 
-若使用需要驗證的 Ollama 服務，可在 `.env` 設定 `LLM_API_KEY`。未提供任何帳密，故本次未對真實模型執行推論；API 契約、失敗處理及模型輸出驗證使用測試替身驗證。若需其他供應商，可在 `server/index.mjs` 替換適配器，不需要修改財務計算。
+若改用本機 Ollama，設定 `LLM_PROVIDER=ollama`、`LLM_URL=http://127.0.0.1:11434/api/chat`，並使用已安裝的模型名稱。`/api/health` 的 `ready` 只表示設定齊全，不保證遠端模型在線。
+
+教練只會收到方案名稱與模擬引擎產生的摘要 facts；不會傳送姓名。情境解析功能則會傳送使用者輸入的情境文字，請勿在其中輸入姓名或帳密。不要將 `.env` 加入版本控制，也不要把 API key 放進前端程式碼。
 
 請勿將 `.env` 加入版本控制。只有明確操作 AI 按鈕才會傳送輸入文字或分析摘要至所設定的模型。
 

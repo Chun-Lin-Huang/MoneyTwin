@@ -1259,11 +1259,31 @@ td {
   margin-top: 22px;
   padding-top: 20px;
 }
-.ai-response p {
+.ai-response-copy {
+  color: #526b58;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.85;
+}
+.ai-response-copy p {
+  margin: 0 0 9px;
+  font: inherit;
+  color: inherit;
   white-space: pre-wrap;
-  font-size: 12px;
-  color: #6e825f;
-  line-height: 2;
+}
+.ai-response-copy h3 {
+  margin: 15px 0 7px;
+  color: #315d49;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+.ai-response-copy strong {
+  color: #315d49;
+  font-weight: 700;
+}
+.ai-response-gap {
+  height: 5px;
 }
 .error-message {
   font-size: 11px;

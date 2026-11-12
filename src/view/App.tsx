@@ -1385,7 +1385,27 @@ function App() {
                       <span className="mode-label">
                         語言模型生成 · 請對照計算依據
                       </span>
-                      <p>{aiText}</p>
+                      <div className="ai-response-copy">
+                        {aiText.split('\n').map((line, index) => {
+                          const trimmed = line.trim();
+                          if (!trimmed) return <div className="ai-response-gap" key={index} />;
+                          const heading = /^\*\*(.+)\*\*$/.exec(trimmed);
+                          if (heading)
+                            return <h3 key={index}>{heading[1]}</h3>;
+                          const parts = trimmed.split(/(\*\*[^*]+\*\*)/g);
+                          return (
+                            <p key={index}>
+                              {parts.map((part, partIndex) =>
+                                part.startsWith('**') && part.endsWith('**') ? (
+                                  <strong key={partIndex}>{part.slice(2, -2)}</strong>
+                                ) : (
+                                  part
+                                ),
+                              )}
+                            </p>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
                 </Card>
