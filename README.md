@@ -1,56 +1,113 @@
-# MoneyTwin
+# MoneyTwin 未來有錢途
 
-專案已實作為 MoneyTwin 財務數位分身。請參閱 [執行方式、功能與驗證說明](README.moneytwin.md)。
+沿用原專案的 React 18、TypeScript、Vite 與 Hash Router，將學生列表範例改為個人財務數位分身及平行未來模擬原型。資料為合成示範資料，沒有使用企劃中的團隊聯絡資訊。
 
-以下保留原始 Vite 範本說明。
+## 執行
 
-# React + TypeScript + Vite
+需要 Node.js 24 以上。
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+```powershell
+npm ci
+npm run dev
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+開啟 Vite 顯示的網址。全部財務計算、情境編輯、規則分析、報告保存均可在沒有模型服務時使用。
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+若要同時使用 API 或直接查看正式建置：
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
+```powershell
+npm run build
+npm run server
 ```
+
+開啟 http://127.0.0.1:3001 。開發模式若要使用 AI，另開一個終端執行 `npm run server`；Vite 會將 `/api` 代理到 3001。
+
+## 已完成的功能
+
+| 企劃模組 | 實作 |
+| --- | --- |
+| 財務建檔 | 稅後收入、固定及變動支出、可用現金、負債付款、預備金門檻、財務目標與起始月份 |
+| 動態財務分身 | 修改共同起點後，自動重算所有方案 |
+| 平行財務未來 | 基準方案及最多七個分支，並排比較期末、最低資金水位、警戒月份及差異 |
+| 事件編輯器 | 租屋、失業、收入變動、突發支出、生活成本、進修；可疊加事件，調整生效月份、期間及前期費用 |
+| 十二個月模擬 | 逐月確定性現金流、互動折線圖、門檻虛線、儲蓄目標及可展開帳本 |
+| 壓力測試 | 一鍵加入不利事件、連續負現金流、首次缺口、預備金不足月份及覆蓋月數 |
+| 臨界點分析 | 反推目前方案中第一筆租屋事件的安全額外月租上限；其他條件保持不變 |
+| 自然語言情境 | 無模型時可使用有限格式的本機解析；設定模型後使用真正 LLM 解析；展示參數與待確認假設後才建立 |
+| 可解釋教練 | 獨立模擬引擎提供四項分析事實，再選擇使用語言模型解釋；未連接模型時明確標示規則分析 |
+| 報告 | 保存完整快照、還原、刪除、逐月 CSV、完整 HTML 報告、JSON 備份匯入匯出 |
+| 資料自主權 | 本機保存、敏感性提示、匯出備份及一鍵清除；損毀資料回復示範值，匯入檢查資料型別及範圍 |
+
+## 展示亮點建議
+
+1. 首頁展示三條平行未來：維持現況、租屋、租屋加三個月失業。
+2. 進入平行未來模擬，修改額外月租，觀察曲線與警戒月份即時改變。
+3. 查看「額外月租上限」。預設租屋案例的臨界值為 **9,750 元**，高於此值的第一個月會低於三個月預備金門檻。
+4. 切換租屋加失業方案：最低餘額為第六個月 **1,000 元**，期末 **31,000 元**。凸顯只看期末餘額會漏掉中途壓力。
+5. 展開逐月明細，對照每一筆收入、支出與事件。再由教練解釋相同數據。
+6. 保存報告並下載完整報告，展示每個結論都有計算及假設依據。
+
+## 選用的真實 AI 模型
+
+MoneyTwin 的模型呼叫由 Node 後端代理，支援 Ollama `/api/chat` 與 OpenAI 相容的 `/v1/chat/completions` API。API 金鑰只放在後端 `.env`，不會打包進前端。
+
+1. 複製 `.env.example` 為 `.env`（同資料夾已存在 `.env` 時直接編輯）。
+2. 設定 `LLM_PROVIDER=openai-compatible`、`LLM_URL=https://tkuimaisvc.ethci.app/v1/chat/completions`、`LLM_MODEL=qwen3.8-27b`，並將 `LLM_API_KEY` 設為服務提供的 Bearer key。
+3. 儲存 `.env`，在 MoneyTwin 資料夾執行 `npm run server`；開發模式另外執行 `npm run dev`。
+4. 開啟 Vite 顯示的網址，在決策教練頁先建立或選擇方案、產生模擬摘要，再點「生成 AI 決策說明」。情境建立視窗的「AI 理解情境」也會使用同一個模型服務。
+
+若改用本機 Ollama，設定 `LLM_PROVIDER=ollama`、`LLM_URL=http://127.0.0.1:11434/api/chat`，並使用已安裝的模型名稱。`/api/health` 的 `ready` 只表示設定齊全，不保證遠端模型在線。
+
+教練只會收到方案名稱與模擬引擎產生的摘要 facts；不會傳送姓名。情境解析功能則會傳送使用者輸入的情境文字，請勿在其中輸入姓名或帳密。不要將 `.env` 加入版本控制，也不要把 API key 放進前端程式碼。
+
+請勿將 `.env` 加入版本控制。只有明確操作 AI 按鈕才會傳送輸入文字或分析摘要至所設定的模型。
+
+## 計算口徑
+
+- `期末現金 = 期初現金 + 收入 − 生活支出 − 負債付款 + 其他現金流`。
+- 收入欄為稅後實領收入。負債為固定月付款，不另外推算利率及攤還表。
+- 租屋、生活成本及進修是原始支出以外的**額外費用**；避免把既有租金重複填入。
+- 一次性事件只在生效月份扣款；前期費用也只扣一次。
+- 失業期間薪資歸零；重疊的失業事件不重複扣薪，期間內的加薪也不產生薪資。
+- 收入減少不會使收入低於零。現金餘額允許為負，以呈現缺口。
+- 預備金門檻為當月經常性支出加負債付款，再乘設定的覆蓋月數，不含當月一次性支出。
+- 「低於門檻」採嚴格小於，等於門檻仍安全；最低水位採十二筆月末餘額。
+- 押金先視為資金流出，不假設退還。無投資報酬、利息、物價預測、隨機事件機率或保證結果。
+- 本機文字解析只支援標示格式，例如「第4個月租金1.2萬，失業三個月，醫療費30000」。同一句中各事件暫採相同生效月份；百分比收入變動需手動轉換金額。所有預設均會揭露。
+
+## API
+
+| 路徑 | 用途 |
+| --- | --- |
+| `GET /api/health` | 模型設定狀態 |
+| `POST /api/parse` | `{ prompt: string }`，回傳通過範圍檢查的事件與待確認問題 |
+| `POST /api/coach` | `{ scenario: string, facts: string[4] }`，回傳教練說明、模型名稱與提示版本 |
+
+財務計算本身刻意在本機執行，沒有不必要的財務資料上傳。API 只監聽 loopback，有來源、大小、格式及逾時處理。本機模式不包含雲端帳戶、資料庫、金融帳戶串接、訂閱收費或公開部署；這些在企劃中為後續商業方向，未偽裝為既有服務。正式公開服務需另外實作身分驗證、授權、限流、加密儲存及部署配置。
+
+## 程式結構
+
+- `src/view/App.tsx`：操作介面及流程。
+- `src/view/components.tsx`：共用圖表、數字欄位、指標卡與逐月帳本。
+- `src/interface/money.ts`：財務、事件、方案、模擬與報告型別。
+- `src/utils/simulation.ts`：獨立財務引擎、風險指標及規則解釋。
+- `src/utils/parser.ts`：有限格式本機自然語言解析。
+- `src/utils/report.ts`：可下載的報告 HTML，對使用者文字跳脫以避免注入。
+- `src/router/router.tsx`：沿用 Hash Router。
+- `src/style/`：響應式介面樣式。
+- `server/index.mjs`：Node 原生 HTTP、模型適配及正式靜態檔案服務。
+- `tests/`：數值基準、邊界、API、報告安全及建置後 DOM 互動測試。
+
+## 驗證
+
+```powershell
+npm run build
+npm run lint
+npm test
+```
+
+互動測試直接載入 `dist` 中建置後的應用，因此修改程式後請先重新建置。測試涵蓋企劃的 304,000／160,000 元案例、押金、事件重疊、失業、負債、邊界月份、安全月租臨界值、解釋一致性、AI 參數驗證、報告文字跳脫及主要操作流程。
+
+本次執行環境沒有可用瀏覽器工作階段，介面以 jsdom 驗證互動；真實桌面及手機的視覺驗收、實際模型品質與推論時間仍需在目標環境確認。
+
+原專案依賴已做相容範圍安全更新。`npm audit` 仍列出部分開發工具的漏洞；未使用 `--force` 做破壞性大版本升級。上線前需另行完成工具鏈升級與安全檢查。
